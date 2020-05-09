@@ -34,16 +34,21 @@ debugger
         socket.broadcast.to(user.room).emit('message',generateMessage('Admin',`${options.username} has joined`))
         // socket.emit, io.emit, socket.broadcast.emit
         // io.to.emit : emit event to everybody in specific room
-
+        io.to(user.room).emit('roomData', {
+            room: user.room,
+            users: getUsersInRoom(user.room)
+        })
         callback()
     })
 
     socket.on('sendMessage',(message, callback) => {
         const filter = new Filter()
-        const user = getUser(socket.id)
+       
         if(filter.isProfane(message)){
             return callback('Profanity is not allowed!')
         }
+
+        const user = getUser(socket.id)
         io.emit('message',generateMessage(user.username,message))
         callback()
     })
@@ -65,6 +70,10 @@ debugger
         const user = removeUser(socket.id)
         if (user) {
             io.to(user.room).emit('message',generateMessage('Admin',`${user.username} has left`))
+            io.to(user.room).emit('roomData', {
+                room: user.room,
+                users: getUsersInRoom(user.room)
+            })
         }else{
             console.log('NOT EMIT DISCONNECT')
         }
